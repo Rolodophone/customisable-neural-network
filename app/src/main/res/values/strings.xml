@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Customisable Neural Network</string>
+    <string name="title_activity_main">Customisable Neural Network</string>
+    <string name="tab_text_1">CREATE</string>
+    <string name="tab_text_2">TRAIN</string>
+    <string name="tab_text_3">TEST</string>
+    <string-array name="nonLinFunArray">
+        <item>Sigmoid</item>
+    </string-array>
+</resources>
