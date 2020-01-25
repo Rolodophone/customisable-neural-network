@@ -22,7 +22,9 @@
             android:id="@+id/textView13"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:text="Training set inputs"
+            android:textAlignment="center"
             android:textStyle="bold" />
 
         <TableLayout
@@ -118,7 +120,9 @@
             android:id="@+id/textView15"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:text="Training set outputs"
+            android:textAlignment="center"
             android:textStyle="bold" />
 
         <TableLayout
