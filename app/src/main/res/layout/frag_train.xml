@@ -110,6 +110,10 @@
             android:layout_height="wrap_content"
             android:text="Add input" />
 
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="30dp" />
+
         <TextView
             android:id="@+id/textView15"
             android:layout_width="match_parent"
@@ -201,6 +205,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Add output" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="30dp" />
 
         <TableLayout
             android:layout_width="match_parent"
