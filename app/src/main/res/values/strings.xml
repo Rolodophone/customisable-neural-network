@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Customisable Neural Network</string>
+    <string name="app_name">Custom AI</string>
     <string name="title_activity_main">Customisable Neural Network</string>
     <string name="tab_text_1">CREATE</string>
     <string name="tab_text_2">TRAIN</string>
