@@ -33,6 +33,7 @@
                 android:id="@+id/spinner"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
+                android:layout_marginBottom="8dp"
                 android:layout_weight="1"
                 android:entries="@array/nonLinFunArray" />
         </TableRow>
@@ -47,18 +48,19 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
                 android:text="Number of inputs" />
 
             <com.warkiz.widget.IndicatorSeekBar
-                android:id="@+id/seekBar"
+                android:id="@+id/noOfInputs"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_gravity="center_vertical"
+                android:layout_weight="1"
                 app:isb_max="10"
                 app:isb_min="1"
                 app:isb_progress="3"
+                app:isb_show_indicator="none"
+                app:isb_show_thumb_text="true"
                 app:isb_ticks_count="10" />
 
         </TableRow>
@@ -73,19 +75,22 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
+                android:enabled="false"
                 android:text="Depth" />
 
             <com.warkiz.widget.IndicatorSeekBar
-                android:id="@+id/seekBar2"
+                android:id="@+id/depth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_gravity="center_vertical"
-                app:isb_max="5"
+                android:layout_weight="1"
+                app:isb_max="1"
                 app:isb_min="1"
                 app:isb_progress="2"
-                app:isb_ticks_count="5" />
+                app:isb_show_indicator="none"
+                app:isb_show_thumb_text="true"
+                app:isb_ticks_count="5"
+                app:isb_user_seekable="false" />
 
         </TableRow>
 
@@ -99,11 +104,11 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
+                android:enabled="false"
                 android:text="Neurons per layer" />
 
             <com.warkiz.widget.IndicatorSeekBar
-                android:id="@+id/seekBar3"
+                android:id="@+id/neuronsPerLayer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -111,7 +116,10 @@
                 app:isb_max="10"
                 app:isb_min="1"
                 app:isb_progress="3"
-                app:isb_ticks_count="10" />
+                app:isb_show_indicator="none"
+                app:isb_show_thumb_text="true"
+                app:isb_ticks_count="10"
+                app:isb_user_seekable="false" />
 
         </TableRow>
 
@@ -125,11 +133,10 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
                 android:text="Number of outputs" />
 
             <com.warkiz.widget.IndicatorSeekBar
-                android:id="@+id/seekBar4"
+                android:id="@+id/noOfOutputs"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -137,6 +144,8 @@
                 app:isb_max="10"
                 app:isb_min="1"
                 app:isb_progress="1"
+                app:isb_show_indicator="none"
+                app:isb_show_thumb_text="true"
                 app:isb_ticks_count="10" />
         </TableRow>
 
@@ -144,14 +153,16 @@
     </TableLayout>
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/buttonCreate"
         android:layout_width="170dp"
         android:layout_height="90dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:background="@color/colorPrimary"
+        android:onClick="onClickCreate"
         android:text="create"
+        android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tableLayout" />

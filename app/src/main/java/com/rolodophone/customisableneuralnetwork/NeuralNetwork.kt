@@ -1,4 +1,4 @@
-package com.example.customisableneuralnetwork
+package com.rolodophone.customisableneuralnetwork
 
 import koma.exp
 import koma.extensions.*
@@ -7,7 +7,7 @@ import koma.rand
 import koma.setSeed
 
 // for some reason koma doesn't have an element-wise way to divide a number by a matrix so I made it myself
-operator fun Double.div(other: Matrix<Double>) = other.map{1.0 / it}
+operator fun Double.div(other: Matrix<Double>) = other.map { 1.0 / it }
 
 interface NonLinFunc {
     // the "squishification" function e.g. sigmoid, ReLU
@@ -32,34 +32,45 @@ object Sigmoid : NonLinFunc {
 }
 
 
-
-// class NeuralNetwork(structure: List<Int>, nonLinFunc: NonLinFunc) {
-class NeuralNetwork(private val nonLinFunc: NonLinFunc) {
+class NeuralNetwork(
+    val nonLinFunc: NonLinFunc,
+    val noInputs: Int,
+    val depth: Int = 1,
+    val noNeuronsPerLayer: Int = noInputs,
+    val noOutputs: Int
+) {
 
     init {
         // seed the random number generator for reproducibility
         setSeed(53)
+
+        //for now make sure depth and noNeuronsPerLayer are unchanged
+        require(depth == 1) { "Depth must be 1" }
+        require(depth == 1) { "noNeuronsPerLayer must be equal to noInputs" }
     }
 
-    // generate initial synapse weights in a 3x1 matrix with values from -1 to 1 (* and - are element-wise)
-    private var synapticWeights = 2 * rand(3, 1) - 1 // TODO replace 3x1 with general equivalent
-
+    // generate initial synapse weights in a noInputs x noOutputs matrix with values from -1 to 1 (* and - are element-wise)
+    var synapticWeights = 2 * rand(noInputs, noOutputs) - 1
 
 
     // pass the inputs through the neural network to see what it predicts
     // input: input values to pass through the matrix (each row is a set of inputs)
     // output: output values that the NN predicts (each row is a set of values)
     fun think(inputs: Matrix<Double>): Matrix<Double> {
-        require(inputs.numCols() == 3) { "Number of columns in `inputs` must be equal to number of rows in `synapticWeights`" } // TODO replace 3 with general equivalent
+        require(inputs.numCols() == noInputs) { "Number of columns in `inputs` must be equal to noInputs" }
 
         return nonLinFunc.nonDeriv(inputs * synapticWeights)
     }
 
     // train the neural network on a data set with known correct answers
-    fun train(trainingSetInputs: Matrix<Double>, trainingSetOutputs: Matrix<Double>, numberOfTrainingIterations: Int) {
+    fun train(
+        trainingSetInputs: Matrix<Double>,
+        trainingSetOutputs: Matrix<Double>,
+        numberOfTrainingIterations: Int
+    ) {
         require(trainingSetInputs.numRows() == trainingSetOutputs.numRows()) { "Number of rows in `trainingSetInputs` must be equal to number of rows in `trainingSetOutputs`" }
-        require(trainingSetInputs.numCols() == 3) { "Number of columns in `trainingSetInputs` must be equal to number of rows in `synapticWeights`" } // TODO replace 3 with general equivalent
-        require(trainingSetOutputs.numCols() == 1) { "Number of columns in `trainingSetOutputs` must be 1"}
+        require(trainingSetInputs.numCols() == noInputs) { "Number of columns in `trainingSetInputs` must be equal to noInputs" }
+        require(trainingSetOutputs.numCols() == noOutputs) { "Number of columns in `trainingSetOutputs` must be equal to noOutputs" }
 
         repeat(numberOfTrainingIterations) {
             // pass the training set through the neural network (guess the outputs based on the inputs)
