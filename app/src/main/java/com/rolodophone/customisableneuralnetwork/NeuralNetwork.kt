@@ -1,5 +1,6 @@
 package com.rolodophone.customisableneuralnetwork
 
+import android.util.Log
 import koma.exp
 import koma.extensions.*
 import koma.matrix.Matrix
@@ -72,17 +73,20 @@ class NeuralNetwork(
         require(trainingSetInputs.numCols() == noInputs) { "Number of columns in `trainingSetInputs` must be equal to noInputs" }
         require(trainingSetOutputs.numCols() == noOutputs) { "Number of columns in `trainingSetOutputs` must be equal to noOutputs" }
 
-        repeat(numberOfTrainingIterations) {
+        repeat(numberOfTrainingIterations) { i ->
+            Log.i("NN", "Training iteration $i")
             // pass the training set through the neural network (guess the outputs based on the inputs)
             val output = think(trainingSetInputs)
 
             // calculate the matrix of errors (which is the difference between the desired output and the actual output)
             val error = trainingSetOutputs - output
+            Log.i("NN", "Error: $error")
 
             // multiply the error by input and gradient of sigmoid curve
             val adjustment = trainingSetInputs.T * (error emul nonLinFunc.deriv(output))
 
             synapticWeights += adjustment
+            Log.i("NN", "New synaptic weights: $synapticWeights")
         }
     }
 }

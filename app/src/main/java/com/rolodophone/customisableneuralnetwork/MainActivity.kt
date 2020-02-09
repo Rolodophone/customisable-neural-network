@@ -1,9 +1,8 @@
 package com.rolodophone.customisableneuralnetwork
 
+import android.content.Context
 import android.os.Bundle
-import android.text.Editable
-import android.text.InputType
-import android.text.TextWatcher
+import android.text.*
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -14,27 +13,15 @@ import androidx.core.view.children
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
 import com.warkiz.widget.IndicatorSeekBar
-import com.warkiz.widget.OnSeekChangeListener
-import com.warkiz.widget.SeekParams
+import koma.matrix.Matrix
 
 class MainActivity : AppCompatActivity() {
     lateinit var neuralNetwork: NeuralNetwork
-
-    class MyOnSeekChangeListener(val linkedSeekBar: IndicatorSeekBar) : OnSeekChangeListener {
-
-        override fun onSeeking(seekParams: SeekParams?) {
-            if (seekParams != null) linkedSeekBar.setProgress(seekParams.progressFloat)
-        }
-
-        override fun onStartTrackingTouch(seekBar: IndicatorSeekBar?) {}
-        override fun onStopTrackingTouch(seekBar: IndicatorSeekBar?) {}
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // activity_main
         val sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
         val viewPager = findViewById<ViewPager>(R.id.view_pager)
         viewPager.adapter = sectionsPagerAdapter
@@ -43,7 +30,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onClickCreate(view: View) {
-        val spinner: Spinner = findViewById(R.id.spinner)
+        val spinner = findViewById<Spinner>(R.id.spinner)
         val noOfInputs = findViewById<IndicatorSeekBar>(R.id.noOfInputs).progress
         val depth = findViewById<IndicatorSeekBar>(R.id.depth).progress
         val neuronsPerLayer = findViewById<IndicatorSeekBar>(R.id.neuronsPerLayer).progress
@@ -131,19 +118,14 @@ class MainActivity : AppCompatActivity() {
         onClickAddOutput(null)
     }
 
-    class MyTextWatcher(val row: TableRow) : TextWatcher {
+    class DeleteEmptyRows(val row: TableRow) : TextWatcher {
 
-        override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
+        //delete rows that have been made blank
         override fun afterTextChanged(text: Editable) {
-            var allBlank = true
-            for (view in row.children) {
-                if (view is EditText && view.text.isNotEmpty()) {
-                    allBlank = false
-                    break
-                }
-            }
+            val allBlank = row.children.all { view -> view !is EditText || view.text.isEmpty() }
 
             val table = row.parent as ViewGroup
             if (allBlank && table.childCount > 2) {
@@ -155,6 +137,32 @@ class MainActivity : AppCompatActivity() {
 
                     if (rowTitle is TextView) rowTitle.text = "#$i"
                 }
+            }
+        }
+    }
+
+    class Filter0to1(val context: Context) : InputFilter {
+        override fun filter(
+            source: CharSequence,
+            start: Int,
+            end: Int,
+            dest: Spanned,
+            dstart: Int,
+            dend: Int
+        ): CharSequence? {
+            //get the full new value
+            val newValue = (dest.subSequence(0, dstart).toString() + source.subSequence(
+                start,
+                end
+            ).toString() + dest.subSequence(dstart, dest.length).toString()).toFloatOrNull()
+
+            //if new value is valid return null else return ""
+            if (newValue == null || newValue in 0.0..1.0) return null
+            else {
+                //TODO replace the passed in context with this@whatever annotation
+                Toast.makeText(context, "Must be in range 0-1!", Toast.LENGTH_SHORT).show()
+
+                return ""
             }
         }
     }
@@ -186,7 +194,8 @@ class MainActivity : AppCompatActivity() {
             newEditText.inputType =
                 InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
             newEditText.textAlignment = EditText.TEXT_ALIGNMENT_CENTER
-            newEditText.addTextChangedListener(MyTextWatcher(newRow))
+            newEditText.addTextChangedListener(DeleteEmptyRows(newRow))
+            newEditText.filters = arrayOf(Filter0to1(this))
             newRow.addView(newEditText)
         }
 
@@ -214,13 +223,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onClickTrain(view: View) {
-        val seekBarNumberOfTrainingIterations: IndicatorSeekBar =
-            findViewById(R.id.trainingIterations)
+        val seekBarNumberOfTrainingIterations =
+            findViewById<IndicatorSeekBar>(R.id.trainingIterations)
+        val inputTable = findViewById<TableLayout>(R.id.inputs)
+        val outputTable = findViewById<TableLayout>(R.id.outputs)
+
+        val trainingSetInputs = Matrix(
+            inputTable.childCount - 1,
+            (inputTable.getChildAt(0) as ViewGroup).childCount - 1
+        ) { row, column ->
+            val editText =
+                (inputTable.getChildAt(row + 1) as ViewGroup).getChildAt(column + 1) as EditText
+            editText.text.toString().toDouble()
+        }
+
+        val trainingSetOutputs = Matrix(
+            outputTable.childCount - 1,
+            (outputTable.getChildAt(0) as ViewGroup).childCount - 1
+        ) { row, column ->
+            val editText =
+                (outputTable.getChildAt(row + 1) as ViewGroup).getChildAt(column + 1) as EditText
+            editText.text.toString().toDouble()
+        }
 
         val numberOfTrainingIterations =
             resources.getStringArray(R.array.iterationsArray)[seekBarNumberOfTrainingIterations.progress].toInt()
 
-        //neuralNetwork.train(, , numberOfTrainingIterations)
+        Log.i("NN", "Started training")
+        neuralNetwork.train(trainingSetInputs, trainingSetOutputs, numberOfTrainingIterations)
+        Log.i("NN", "Finished training")
     }
 
     fun onClickTest(view: View) {
