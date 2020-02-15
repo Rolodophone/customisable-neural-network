@@ -14,6 +14,7 @@ import androidx.core.view.children
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
 import com.warkiz.widget.IndicatorSeekBar
+import koma.extensions.get
 import koma.matrix.Matrix
 
 class MainActivity : AppCompatActivity() {
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
+        val sectionsPagerAdapter = MySectionsPagerAdapter(this, supportFragmentManager)
         val viewPager = findViewById<ViewPager>(R.id.view_pager)
         viewPager.adapter = sectionsPagerAdapter
         val tabs = findViewById<TabLayout>(R.id.tabs)
@@ -50,72 +51,14 @@ class MainActivity : AppCompatActivity() {
             "Created neural network with initial synaptic weights of ${neuralNetwork.synapticWeights}"
         )
 
-        //prepare input table
-
-        val inputTable: TableLayout = findViewById(R.id.inputs)
-        inputTable.removeAllViews()
-
-        val newInputRow = TableRow(this)
-        newInputRow.layoutParams = TableLayout.LayoutParams(
-            TableLayout.LayoutParams.MATCH_PARENT,
-            TableLayout.LayoutParams.MATCH_PARENT
-        )
-
-        val newInputRowSpace = Space(this)
-        newInputRowSpace.layoutParams = TableRow.LayoutParams(
-            TableRow.LayoutParams.MATCH_PARENT,
-            TableRow.LayoutParams.MATCH_PARENT
-        )
-        newInputRow.addView(newInputRowSpace)
-
-        for (i in 1..noOfInputs) {
-            val newColumnTitle = TextView(this)
-            newColumnTitle.layoutParams = TableRow.LayoutParams(
-                TableRow.LayoutParams.WRAP_CONTENT,
-                TableRow.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-            newColumnTitle.gravity = Gravity.CENTER_HORIZONTAL
-            newColumnTitle.text = "N$i"
-            newInputRow.addView(newColumnTitle)
+        val spa = findViewById<ViewPager>(R.id.view_pager).adapter as MySectionsPagerAdapter
+        if (spa.noOfTabs == 1) {
+            spa.noOfTabs = 2
+            spa.notifyDataSetChanged()
         }
 
-        inputTable.addView(newInputRow)
-
-        //prepare output table
-
-        val outputTable: TableLayout = findViewById(R.id.outputs)
-        outputTable.removeAllViews()
-
-        val newOutputRow = TableRow(this)
-        newOutputRow.layoutParams = TableLayout.LayoutParams(
-            TableLayout.LayoutParams.MATCH_PARENT,
-            TableLayout.LayoutParams.MATCH_PARENT
-        )
-
-        val newOutputRowSpace = Space(this)
-        newOutputRowSpace.layoutParams = TableRow.LayoutParams(
-            TableRow.LayoutParams.MATCH_PARENT,
-            TableRow.LayoutParams.MATCH_PARENT
-        )
-        newOutputRow.addView(newOutputRowSpace)
-
-        for (i in 1..noOfOutputs) {
-            val newColumnTitle = TextView(this)
-            newColumnTitle.layoutParams = TableRow.LayoutParams(
-                TableRow.LayoutParams.WRAP_CONTENT,
-                TableRow.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-            newColumnTitle.gravity = Gravity.CENTER_HORIZONTAL
-            newColumnTitle.text = "N$i"
-            newOutputRow.addView(newColumnTitle)
-        }
-
-        outputTable.addView(newOutputRow)
-
-        //add the first row of TextView inputs on each table
-        onClickAddSet(null)
+        resetTable(findViewById(R.id.inputs), noOfInputs)
+        resetTable(findViewById(R.id.outputs), noOfOutputs, true)
     }
 
     inner class DeleteEmptyRows(val row: TableRow) : TextWatcher {
@@ -172,7 +115,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun addRow(table: TableLayout, columns: Int, isLastTable: Boolean = false) {
+    fun resetTable(table: TableLayout, columns: Int, isLastTable: Boolean = false, showTitle: Boolean = true, isTextView: Boolean = false) {
+        table.removeAllViews()
 
         val newRow = TableRow(this)
         newRow.layoutParams = TableLayout.LayoutParams(
@@ -180,43 +124,94 @@ class MainActivity : AppCompatActivity() {
             TableLayout.LayoutParams.MATCH_PARENT
         )
 
-        val newRowTitle = TextView(this)
-        newRowTitle.layoutParams = TableRow.LayoutParams(
-            TableRow.LayoutParams.WRAP_CONTENT,
-            TableRow.LayoutParams.WRAP_CONTENT
-        )
-        newRowTitle.text = "#${table.childCount}"
-        newRow.addView(newRowTitle)
-
+        if (showTitle) {
+            val newInputRowSpace = Space(this)
+            newInputRowSpace.layoutParams = TableRow.LayoutParams(
+                TableRow.LayoutParams.MATCH_PARENT,
+                TableRow.LayoutParams.MATCH_PARENT
+            )
+            newRow.addView(newInputRowSpace)
+        }
 
         for (i in 1..columns) {
-            val newEditText = EditText(this)
-            newEditText.layoutParams = TableRow.LayoutParams(
-                TableRow.LayoutParams.MATCH_PARENT,
+            val newColumnTitle = TextView(this)
+            newColumnTitle.layoutParams = TableRow.LayoutParams(
+                TableRow.LayoutParams.WRAP_CONTENT,
                 TableRow.LayoutParams.WRAP_CONTENT,
                 1f
             )
-            newEditText.inputType =
-                InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-            newEditText.textAlignment = EditText.TEXT_ALIGNMENT_CENTER
-            newEditText.addTextChangedListener(DeleteEmptyRows(newRow))
-            newEditText.filters = arrayOf(Filter0to1())
+            newColumnTitle.gravity = Gravity.CENTER_HORIZONTAL
+            newColumnTitle.text = "N$i"
+            newRow.addView(newColumnTitle)
+        }
 
-            if (i == columns && isLastTable) newEditText.imeOptions = IME_ACTION_DONE
-            else newEditText.imeOptions = IME_ACTION_NEXT
+        table.addView(newRow)
+        addRow(table, columns, isLastTable, showTitle, isTextView)
+    }
 
-            if (i == 1) {
-                val prevRow = table.getChildAt(table.childCount - 1) as ViewGroup
-                val prevElement = prevRow.getChildAt(prevRow.childCount - 1)
+    fun addRow(table: TableLayout, columns: Int, isLastTable: Boolean = false, showTitle: Boolean = true, isTextView: Boolean = false) {
 
-                if (prevElement is EditText) {
-                    prevElement.imeOptions = IME_ACTION_NEXT
-                    prevElement.nextFocusForwardId = newEditText.id
-                }
-            } else newRow.getChildAt(newRow.childCount - 1).nextFocusForwardId = newEditText.id
+        val newRow = TableRow(this)
+        newRow.layoutParams = TableLayout.LayoutParams(
+            TableLayout.LayoutParams.MATCH_PARENT,
+            TableLayout.LayoutParams.MATCH_PARENT
+        )
+
+        if (showTitle) {
+            val newRowTitle = TextView(this)
+            newRowTitle.layoutParams = TableRow.LayoutParams(
+                TableRow.LayoutParams.WRAP_CONTENT,
+                TableRow.LayoutParams.WRAP_CONTENT
+            )
+            newRowTitle.text = "#${table.childCount}"
+            newRow.addView(newRowTitle)
+        }
 
 
-            newRow.addView(newEditText)
+        for (i in 1..columns) {
+            if (isTextView) {
+                val newTextView = TextView(this)
+                val newLayoutParams = TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT,
+                    TableRow.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+                newLayoutParams.topMargin = 16
+                newTextView.layoutParams = newLayoutParams
+
+                newTextView.gravity = Gravity.CENTER_HORIZONTAL
+                //newTextView.textAlignment = TextView.TEXT_ALIGNMENT_CENTER
+
+                newRow.addView(newTextView)
+            } else {
+                val newEditText = EditText(this)
+                newEditText.layoutParams = TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT,
+                    TableRow.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+                newEditText.inputType =
+                    InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+                newEditText.textAlignment = EditText.TEXT_ALIGNMENT_CENTER
+                newEditText.addTextChangedListener(DeleteEmptyRows(newRow))
+                newEditText.filters = arrayOf(Filter0to1())
+
+                if (i == columns && isLastTable) newEditText.imeOptions = IME_ACTION_DONE
+                else newEditText.imeOptions = IME_ACTION_NEXT
+
+                if (i == 1) {
+                    val prevRow = table.getChildAt(table.childCount - 1) as ViewGroup
+                    val prevElement = prevRow.getChildAt(prevRow.childCount - 1)
+
+                    if (prevElement is EditText) {
+                        prevElement.imeOptions = IME_ACTION_NEXT
+                        prevElement.nextFocusForwardId = newEditText.id
+                    }
+                } else newRow.getChildAt(newRow.childCount - 1).nextFocusForwardId = newEditText.id
+
+
+                newRow.addView(newEditText)
+            }
         }
 
         table.addView(newRow)
@@ -243,14 +238,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onClickTrain(view: View) {
-        val seekBarNumberOfTrainingIterations =
-            findViewById<IndicatorSeekBar>(R.id.trainingIterations)
+        val seekBarNumberOfTrainingIterations = findViewById<IndicatorSeekBar>(R.id.trainingIterations)
         val inputTable = findViewById<TableLayout>(R.id.inputs)
         val outputTable = findViewById<TableLayout>(R.id.outputs)
 
         var anyEmptyInput = false
 
-        val trainingSetInputs = Matrix(inputTable.childCount - 1, (inputTable.getChildAt(0) as ViewGroup).childCount - 1) { row, column ->
+        val trainingSetInputs = Matrix(inputTable.childCount - 1, neuralNetwork.noInputs) { row, column ->
             val editText = (inputTable.getChildAt(row + 1) as ViewGroup).getChildAt(column + 1) as EditText
             val content = editText.text.toString()
             if (content.isEmpty()) {
@@ -259,7 +253,7 @@ class MainActivity : AppCompatActivity() {
             } else content.toDouble()
         }
 
-        val trainingSetOutputs = Matrix(outputTable.childCount - 1, (outputTable.getChildAt(0) as ViewGroup).childCount - 1) { row, column ->
+        val trainingSetOutputs = Matrix(outputTable.childCount - 1, neuralNetwork.noOutputs) { row, column ->
             val editText = (outputTable.getChildAt(row + 1) as ViewGroup).getChildAt(column + 1) as EditText
             val content = editText.text.toString()
             if (content.isEmpty()) {
@@ -278,20 +272,53 @@ class MainActivity : AppCompatActivity() {
 
         Log.i("NN", "Started training\nTraining set inputs:\n$trainingSetInputs\nTraining set outputs:\n$trainingSetOutputs")
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
-        progressBar.visibility = ProgressBar.VISIBLE
+        progressBar.visibility = View.VISIBLE
         progressBar.max = numberOfTrainingIterations
 
         Thread(Runnable {
             neuralNetwork.train(trainingSetInputs, trainingSetOutputs, numberOfTrainingIterations) { i -> progressBar.post { progressBar.progress = i } }
-            progressBar.post { progressBar.visibility = ProgressBar.INVISIBLE }
+
+            runOnUiThread {
+                progressBar.visibility = View.INVISIBLE
+                Toast.makeText(this, "Training completed", Toast.LENGTH_SHORT).show()
+
+                val spa = findViewById<ViewPager>(R.id.view_pager).adapter as MySectionsPagerAdapter
+                if (spa.noOfTabs == 2) {
+                    spa.noOfTabs = 3
+                    spa.notifyDataSetChanged()
+                }
+            }
+
+            Log.i("NN", "Finished training")
         }).start()
-
-        Toast.makeText(this, "Training completed", Toast.LENGTH_SHORT).show()
-
-        Log.i("NN", "Finished training")
     }
 
     fun onClickTest(view: View) {
+        val inputTable = findViewById<TableLayout>(R.id.testInputs)
+        val outputTable = findViewById<TableLayout>(R.id.testOutputs)
+        val outputTableTitle = findViewById<TextView>(R.id.testOutputsTitle)
 
+        var anyEmptyInput = false
+
+        val inputs = Matrix(1, (inputTable.getChildAt(0) as ViewGroup).childCount) { row, column ->
+            val editText = (inputTable.getChildAt(1) as ViewGroup).getChildAt(column) as EditText
+            val content = editText.text.toString()
+            if (content.isEmpty()) {
+                anyEmptyInput = true
+                0.0
+            } else content.toDouble()
+        }
+
+        if (anyEmptyInput) {
+            Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val outputs = neuralNetwork.think(inputs)
+
+        (outputTable.getChildAt(1) as ViewGroup).children.forEachIndexed { i: Int, input: View -> (input as TextView).text = "%.2f".format(outputs[0, i]) }
+
+        outputTableTitle.visibility = View.VISIBLE
+        outputTable.visibility = View.VISIBLE
     }
 }

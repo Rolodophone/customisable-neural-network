@@ -15,16 +15,16 @@ private val TAB_TITLES = arrayOf(
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-class SectionsPagerAdapter(private val context: Context, fm: FragmentManager) :
-    FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+class MySectionsPagerAdapter(private val context: Context, fm: FragmentManager) : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+    var noOfTabs = 1
 
     override fun getItem(position: Int): Fragment {
         // getItem is called to instantiate the fragment for the given page.
 
         return when (position) {
             0 -> FragCreate()
-            1 -> FragTrain()
-            else -> FragTest()
+            1 -> FragTrain(context as MainActivity)
+            else -> FragTest(context as MainActivity)
         }
     }
 
@@ -32,5 +32,5 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager) :
         return context.resources.getString(TAB_TITLES[position])
     }
 
-    override fun getCount() = 3
+    override fun getCount() = noOfTabs
 }
