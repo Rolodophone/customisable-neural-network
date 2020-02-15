@@ -33,13 +33,7 @@ object Sigmoid : NonLinFunc {
 }
 
 
-class NeuralNetwork(
-    val nonLinFunc: NonLinFunc,
-    val noInputs: Int,
-    val depth: Int = 1,
-    val noNeuronsPerLayer: Int = noInputs,
-    val noOutputs: Int
-) {
+class NeuralNetwork(val nonLinFunc: NonLinFunc, val noInputs: Int, val depth: Int = 1, val noNeuronsPerLayer: Int = noInputs, val noOutputs: Int) {
 
     init {
         // seed the random number generator for reproducibility
@@ -64,11 +58,7 @@ class NeuralNetwork(
     }
 
     // train the neural network on a data set with known correct answers
-    fun train(
-        trainingSetInputs: Matrix<Double>,
-        trainingSetOutputs: Matrix<Double>,
-        numberOfTrainingIterations: Int
-    ) {
+    fun train(trainingSetInputs: Matrix<Double>, trainingSetOutputs: Matrix<Double>, numberOfTrainingIterations: Int, eachIteration: (i: Int) -> Unit = {}) {
         require(trainingSetInputs.numRows() == trainingSetOutputs.numRows()) { "Number of rows in `trainingSetInputs` must be equal to number of rows in `trainingSetOutputs`" }
         require(trainingSetInputs.numCols() == noInputs) { "Number of columns in `trainingSetInputs` must be equal to noInputs" }
         require(trainingSetOutputs.numCols() == noOutputs) { "Number of columns in `trainingSetOutputs` must be equal to noOutputs" }
@@ -87,6 +77,8 @@ class NeuralNetwork(
 
             synapticWeights += adjustment
             Log.i("NN", "New synaptic weights: $synapticWeights")
+
+            eachIteration(i)
         }
     }
 }

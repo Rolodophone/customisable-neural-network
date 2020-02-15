@@ -165,7 +165,7 @@ class MainActivity : AppCompatActivity() {
             //if new value is valid return null else return ""
             if (newValue == null || newValue in 0.0..1.0) return null
             else {
-                Toast.makeText(this@MainActivity, "Must be in range 0-1!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "Please enter a number between 0 and 1", Toast.LENGTH_SHORT).show()
 
                 return ""
             }
@@ -248,29 +248,46 @@ class MainActivity : AppCompatActivity() {
         val inputTable = findViewById<TableLayout>(R.id.inputs)
         val outputTable = findViewById<TableLayout>(R.id.outputs)
 
-        val trainingSetInputs = Matrix(
-            inputTable.childCount - 1,
-            (inputTable.getChildAt(0) as ViewGroup).childCount - 1
-        ) { row, column ->
-            val editText =
-                (inputTable.getChildAt(row + 1) as ViewGroup).getChildAt(column + 1) as EditText
-            editText.text.toString().toDouble()
+        var anyEmptyInput = false
+
+        val trainingSetInputs = Matrix(inputTable.childCount - 1, (inputTable.getChildAt(0) as ViewGroup).childCount - 1) { row, column ->
+            val editText = (inputTable.getChildAt(row + 1) as ViewGroup).getChildAt(column + 1) as EditText
+            val content = editText.text.toString()
+            if (content.isEmpty()) {
+                anyEmptyInput = true
+                0.0
+            } else content.toDouble()
         }
 
-        val trainingSetOutputs = Matrix(
-            outputTable.childCount - 1,
-            (outputTable.getChildAt(0) as ViewGroup).childCount - 1
-        ) { row, column ->
-            val editText =
-                (outputTable.getChildAt(row + 1) as ViewGroup).getChildAt(column + 1) as EditText
-            editText.text.toString().toDouble()
+        val trainingSetOutputs = Matrix(outputTable.childCount - 1, (outputTable.getChildAt(0) as ViewGroup).childCount - 1) { row, column ->
+            val editText = (outputTable.getChildAt(row + 1) as ViewGroup).getChildAt(column + 1) as EditText
+            val content = editText.text.toString()
+            if (content.isEmpty()) {
+                anyEmptyInput = true
+                0.0
+            } else content.toDouble()
         }
 
-        val numberOfTrainingIterations =
-            resources.getStringArray(R.array.iterationsArray)[seekBarNumberOfTrainingIterations.progress].toInt()
+        if (anyEmptyInput) {
+            Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val numberOfTrainingIterations = resources.getStringArray(R.array.iterationsArray)[seekBarNumberOfTrainingIterations.progress].toInt()
+
 
         Log.i("NN", "Started training\nTraining set inputs:\n$trainingSetInputs\nTraining set outputs:\n$trainingSetOutputs")
-        neuralNetwork.train(trainingSetInputs, trainingSetOutputs, numberOfTrainingIterations)
+        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
+        progressBar.visibility = ProgressBar.VISIBLE
+        progressBar.max = numberOfTrainingIterations
+
+        Thread(Runnable {
+            neuralNetwork.train(trainingSetInputs, trainingSetOutputs, numberOfTrainingIterations) { i -> progressBar.post { progressBar.progress = i } }
+            progressBar.post { progressBar.visibility = ProgressBar.INVISIBLE }
+        }).start()
+
+        Toast.makeText(this, "Training completed", Toast.LENGTH_SHORT).show()
+
         Log.i("NN", "Finished training")
     }
 

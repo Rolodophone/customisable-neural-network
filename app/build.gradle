@@ -40,5 +40,5 @@ dependencies {
     implementation group: "com.kyonifer", name: "koma-plotting", version: "0.12"
 
     // for custom seekbar
-    //implementation 'com.github.warkiz.widget:indicatorseekbar:2.1.2'
+    implementation 'com.github.warkiz.widget:indicatorseekbar:2.1.2'
 }

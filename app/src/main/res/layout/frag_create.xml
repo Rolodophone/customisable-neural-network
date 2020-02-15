@@ -56,6 +56,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
+                app:isb_clear_default_padding="false"
                 app:isb_max="10"
                 app:isb_min="1"
                 app:isb_progress="3"
