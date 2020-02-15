@@ -269,7 +269,7 @@ class MainActivity : AppCompatActivity() {
         val numberOfTrainingIterations =
             resources.getStringArray(R.array.iterationsArray)[seekBarNumberOfTrainingIterations.progress].toInt()
 
-        Log.i("NN", "Started training")
+        Log.i("NN", "Started training\nTraining set inputs:\n$trainingSetInputs\nTraining set outputs:\n$trainingSetOutputs")
         neuralNetwork.train(trainingSetInputs, trainingSetOutputs, numberOfTrainingIterations)
         Log.i("NN", "Finished training")
     }
