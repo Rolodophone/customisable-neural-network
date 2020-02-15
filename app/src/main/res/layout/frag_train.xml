@@ -102,6 +102,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:imeOptions="actionNext"
                         android:inputType="numberDecimal"
                         android:textAlignment="center" />
 
@@ -109,31 +110,9 @@
 
             </TableLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/button4"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:onClick="onClickAddInput"
-                    android:text="Add input" />
-
-                <Button
-                    android:id="@+id/button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:onClick="onClickRemoveInput"
-                    android:text="Remove input" />
-            </LinearLayout>
-
             <Space
                 android:layout_width="match_parent"
-                android:layout_height="30dp" />
+                android:layout_height="18dp" />
 
             <TextView
                 android:id="@+id/textView15"
@@ -217,12 +196,17 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:ems="10"
+                        android:imeOptions="actionDone"
                         android:inputType="numberDecimal"
                         android:textAlignment="center" />
 
                 </TableRow>
 
             </TableLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="11dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -234,16 +218,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:onClick="onClickAddOutput"
-                    android:text="Add output" />
+                    android:onClick="onClickAddSet"
+                    android:text="Add set" />
 
                 <Button
                     android:id="@+id/button3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:onClick="onClickRemoveOutput"
-                    android:text="Remove output" />
+                    android:onClick="onClickRemoveLastSet"
+                    android:text="Remove last set" />
             </LinearLayout>
 
             <Space
@@ -274,6 +258,10 @@
                 app:isb_tick_texts_array="@array/iterationsArray"
                 app:isb_tick_texts_size="11sp"
                 app:isb_ticks_count="9" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="17dp" />
 
             <Button
                 android:id="@+id/button2"

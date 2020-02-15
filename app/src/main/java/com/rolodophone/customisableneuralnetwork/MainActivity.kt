@@ -1,12 +1,13 @@
 package com.rolodophone.customisableneuralnetwork
 
-import android.content.Context
 import android.os.Bundle
 import android.text.*
 import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo.IME_ACTION_DONE
+import android.view.inputmethod.EditorInfo.IME_ACTION_NEXT
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
@@ -81,8 +82,6 @@ class MainActivity : AppCompatActivity() {
 
         inputTable.addView(newInputRow)
 
-        onClickAddInput(null)
-
         //prepare output table
 
         val outputTable: TableLayout = findViewById(R.id.outputs)
@@ -115,11 +114,11 @@ class MainActivity : AppCompatActivity() {
 
         outputTable.addView(newOutputRow)
 
-        onClickAddOutput(null)
+        //add the first row of TextView inputs on each table
+        onClickAddSet(null)
     }
 
-    class DeleteEmptyRows(val row: TableRow) : TextWatcher {
-
+    class DeleteEmptyRows(val row: TableRow, val row2: TableRow) : TextWatcher {
         override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
@@ -141,34 +140,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    class Filter0to1(val context: Context) : InputFilter {
-        override fun filter(
-            source: CharSequence,
-            start: Int,
-            end: Int,
-            dest: Spanned,
-            dstart: Int,
-            dend: Int
-        ): CharSequence? {
+    inner class Filter0to1 : InputFilter {
+        override fun filter(source: CharSequence, start: Int, end: Int, dest: Spanned, dstart: Int, dend: Int): CharSequence? {
             //get the full new value
-            val newValue = (dest.subSequence(0, dstart).toString() + source.subSequence(
-                start,
-                end
-            ).toString() + dest.subSequence(dstart, dest.length).toString()).toFloatOrNull()
+            val newValue = (dest.subSequence(0, dstart).toString() + source.subSequence(start, end).toString() + dest.subSequence(dstart, dest.length).toString()).toFloatOrNull()
 
             //if new value is valid return null else return ""
             if (newValue == null || newValue in 0.0..1.0) return null
             else {
-                //TODO replace the passed in context with this@whatever annotation
-                Toast.makeText(context, "Must be in range 0-1!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "Must be in range 0-1!", Toast.LENGTH_SHORT).show()
 
                 return ""
             }
         }
     }
 
-    fun addRow(table: TableLayout, columns: Int) {
-        val newRowIndex = table.childCount.toString()
+    fun addRow(table: TableLayout, columns: Int, isLastTable: Boolean = false) {
 
         val newRow = TableRow(this)
         newRow.layoutParams = TableLayout.LayoutParams(
@@ -181,8 +168,9 @@ class MainActivity : AppCompatActivity() {
             TableRow.LayoutParams.WRAP_CONTENT,
             TableRow.LayoutParams.WRAP_CONTENT
         )
-        newRowTitle.text = "#$newRowIndex"
+        newRowTitle.text = "#${table.childCount}"
         newRow.addView(newRowTitle)
+
 
         for (i in 1..columns) {
             val newEditText = EditText(this)
@@ -195,31 +183,46 @@ class MainActivity : AppCompatActivity() {
                 InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
             newEditText.textAlignment = EditText.TEXT_ALIGNMENT_CENTER
             newEditText.addTextChangedListener(DeleteEmptyRows(newRow))
-            newEditText.filters = arrayOf(Filter0to1(this))
+            newEditText.filters = arrayOf(Filter0to1())
+
+            if (i == columns && isLastTable) newEditText.imeOptions = IME_ACTION_DONE
+            else newEditText.imeOptions = IME_ACTION_NEXT
+
+            if (i == 1) {
+                val prevRow = table.getChildAt(table.childCount - 1) as ViewGroup
+                val prevElement = prevRow.getChildAt(prevRow.childCount - 1)
+
+                if (prevElement is EditText) {
+                    prevElement.imeOptions = IME_ACTION_NEXT
+                    prevElement.nextFocusForwardId = newEditText.id
+                }
+            } else newRow.getChildAt(newRow.childCount - 1).nextFocusForwardId = newEditText.id
+
+
             newRow.addView(newEditText)
         }
 
         table.addView(newRow)
     }
 
-    fun onClickAddInput(view: View?) {
+    fun removeRow(table: TableLayout, isLastTable: Boolean = false) {
+        if (table.childCount > 2) {
+            table.removeViewAt(table.childCount - 1)
+
+            val prevRow = table.getChildAt(table.childCount - 1) as ViewGroup
+            val prevElement = prevRow.getChildAt(prevRow.childCount - 1)
+            if (isLastTable && prevElement is EditText) prevElement.imeOptions = IME_ACTION_DONE
+        }
+    }
+
+    fun onClickAddSet(view: View?) {
         addRow(findViewById(R.id.inputs), neuralNetwork.noInputs)
+        addRow(findViewById(R.id.outputs), neuralNetwork.noOutputs, true)
     }
 
-    fun removeRow(table: TableLayout) {
-        if (table.childCount > 2) table.removeViewAt(table.childCount - 1)
-    }
-
-    fun onClickRemoveInput(view: View) {
+    fun onClickRemoveLastSet(view: View) {
         removeRow(findViewById(R.id.inputs))
-    }
-
-    fun onClickAddOutput(view: View?) {
-        addRow(findViewById(R.id.outputs), neuralNetwork.noOutputs)
-    }
-
-    fun onClickRemoveOutput(view: View) {
-        removeRow(findViewById(R.id.outputs))
+        removeRow(findViewById(R.id.outputs), true)
     }
 
     fun onClickTrain(view: View) {
