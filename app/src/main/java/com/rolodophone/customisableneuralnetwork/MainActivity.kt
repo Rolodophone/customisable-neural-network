@@ -118,20 +118,37 @@ class MainActivity : AppCompatActivity() {
         onClickAddSet(null)
     }
 
-    class DeleteEmptyRows(val row: TableRow, val row2: TableRow) : TextWatcher {
+    inner class DeleteEmptyRows(val row: TableRow) : TextWatcher {
         override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
         //delete rows that have been made blank
         override fun afterTextChanged(text: Editable) {
-            val allBlank = row.children.all { view -> view !is EditText || view.text.isEmpty() }
-
             val table = row.parent as ViewGroup
+
+            val otherRow = (
+                    if (table.id == R.id.inputs) findViewById<TableLayout>(R.id.outputs).getChildAt(table.indexOfChild(row))
+                    else findViewById<TableLayout>(R.id.inputs).getChildAt(table.indexOfChild(row))
+                    ) as TableRow
+
+
+            val allBlank = (row.children + otherRow.children).all { view -> view !is EditText || view.text.isEmpty() }
             if (allBlank && table.childCount > 2) {
                 table.removeView(row)
 
                 //update #1, #2, etc
                 for ((i, eachRow) in table.children.withIndex()) {
+                    val rowTitle = (eachRow as ViewGroup).getChildAt(0)
+
+                    if (rowTitle is TextView) rowTitle.text = "#$i"
+                }
+
+
+                val otherTable = otherRow.parent as ViewGroup
+                otherTable.removeView(otherRow)
+
+                //update #1, #2, etc
+                for ((i, eachRow) in otherTable.children.withIndex()) {
                     val rowTitle = (eachRow as ViewGroup).getChildAt(0)
 
                     if (rowTitle is TextView) rowTitle.text = "#$i"
